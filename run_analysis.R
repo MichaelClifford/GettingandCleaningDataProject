@@ -1,9 +1,12 @@
 run_analysis <- function (){
   
+  #load the necessary packages into R
+  
   library(dplyr)
   library(reshape2)
 
-  #load data into R if not already
+  #read the data into R & merge into a single dataframe.
+ 
   S_test<-read.table("test/subject_test.txt")
   X_test<-read.table("test/X_test.txt")
   y_test<-read.table("test/y_test.txt")
@@ -16,7 +19,9 @@ run_analysis <- function (){
   
   DATA<-rbind(TEST,TRAIN)
   
-  #rename the columns
+  
+  #rename columns
+  
   features<-read.table("features.txt")
   sub<-data.frame(1,"Subject")
   act<-data.frame(1,"Activity")
@@ -29,12 +34,13 @@ run_analysis <- function (){
   
   
 
-  #select(dplyr) columns with "mean" \(or) "std"
+  #select only the columns with measurments on the mean 
+  #and standard deviation for each measurement
   
   DATA<-data.frame(DATA, check.names = TRUE)
   DATA <- select(DATA, contains("Subject"),contains("Activity"),contains("mean") ,contains("std"))
 
-  #rename activities in data set 
+  #rename the activities in the "Activity" column 
   
   for (i in 1:length(DATA[,2])){
     if (DATA[i,2] == 1)
@@ -52,24 +58,26 @@ run_analysis <- function (){
   }
   
  
+#create an independant dataset to convert 
+#into a Tidy Dataset 
 
 TidyDATA<-DATA
 
+
+
 colLabels<-colnames(TidyDATA)
 colLabels<-colLabels[3:88]
-#TidyDATA<-melt(TidyDATA, id =c("Subject", "Activity"), measure.vars = colLabels)
-#TidyDATA<-dcast(TidyDATA, Activity ~ variable,mean)
+
+#convert new dataset into a tidy dataset with the average of
+#each variable for each activity and each subject
+
 TidyDATA<-as.vector(TidyDATA)
 TidyDATA<-group_by(TidyDATA, Subject, Activity)
 TidyDATA<-summarise_each(TidyDATA, funs(mean))
 
 
-#then ->
-  #NewDataFrame <- APPLY(DF, mean, by subject)
-  #write.table(NewDataFrame)
+#write new dataset to a txt file
   
-write.table(TidyDATA, "TD.txt")
-write.csv(TidyDATA, "TD.csv")
-
+write.table(TidyDATA, "GetandCleanData.txt", row.names = FALSE)
   
 }
